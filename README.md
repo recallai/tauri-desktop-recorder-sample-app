@@ -2,7 +2,9 @@
 
 A small **macOS Apple Silicon** development sample. Join Google Meet in a visible Chrome tab, choose the detected meeting, and click **Start recording** or **Stop recording**. Recall's Desktop Recording SDK captures the meeting on the user's Mac without a meeting bot. The app shows the recording link after Recall sends `sdk_upload.complete`.
 
-This is an SDK integration example, not a general screen recorder or an Electron/Tauri benchmark. The SDK performs capture; Tauri does not encode media or use a Rust capture crate here.
+The SDK performs capture; Tauri does not encode media or use a Rust capture crate here.
+
+For an in depth look how to build, check out the [companion Tauri desktop recorder tutorial](https://www.recall.ai/blog/tauri-desktop-recorder).
 
 ## Architecture diagrams
 

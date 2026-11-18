@@ -1,0 +1,13 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Recall Meet Recorder Sample",
+  "version": "0.1.0",
+  "identifier": "ai.recall.sample.tauri.meet",
+  "build": { "beforeDevCommand": "npm run prepare:sidecar && npm run vite -- --host 127.0.0.1", "devUrl": "http://127.0.0.1:1420", "beforeBuildCommand": "npm run prepare:sidecar && npm run build", "frontendDist": "../dist" },
+  "app": { "windows": [{ "title": "Recall Meet Recorder", "width": 620, "height": 700 }] },
+  "bundle": {
+    "active": true,
+    "externalBin": ["binaries/node"],
+    "resources": { "resources/sidecar/": "sidecar/" }
+  }
+}

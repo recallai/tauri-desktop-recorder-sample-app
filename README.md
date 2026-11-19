@@ -49,19 +49,51 @@ The first two diagrams show Recall SDK integration; they do not show Electron's 
 ## Requirements
 
 - Apple Silicon Mac running macOS 13 or later, with Chrome and an active Google Meet call. The Meet tab must be visible or its picture-in-picture view shown for detection. Keep the meeting window on the current desktop for video capture.
-- Node.js 22+, npm, Rust/Cargo, and [Tauri v2 macOS prerequisites](https://v2.tauri.app/start/prerequisites/).
+- Node.js 22+, npm, and [Tauri v2 macOS prerequisites](https://v2.tauri.app/start/prerequisites/). Step 6 covers installing Rust and Cargo if needed.
 - A Recall workspace, API key, and matching [regional API URL](https://docs.recall.ai/docs/desktop-sdk#starting-the-sdk).
 - ngrok v3 with an authenticated account. `npm run tunnel` uses your account's assigned HTTPS dev domain by default. If you own a reserved domain, set `PUBLIC_API_BASE_URL` to its HTTPS origin (without `/api/webhook`) for the tunnel script. Use the hostname ngrok actually prints, not an example or placeholder.
 - A webhook signing secret. For workspaces created on or after December 15, 2025, create a **workspace verification secret** in Recall's API keys page. Older accounts use the **Svix endpoint signing secret** shown on their webhook endpoint. Both begin with `whsec_`.
 
 ## Run
 
-1. Run `npm ci`.
-2. Copy `.sample.env` to `.env`, then set `RECALL_API_URL`, `RECALL_API_KEY`, and `RECALL_WEBHOOK_SECRET`. Use the same region for the URL, API key, and dashboard. Never commit `.env`.
-3. In terminal 1 run `npm run backend`. It starts the local API on port 8787 and webhook receiver on port 3000. Confirm the terminal prints `Webhook receiver: http://127.0.0.1:3000/api/webhook`. Port 3000 must be free when the backend starts.
-4. In terminal 2 run `npm run tunnel` (by default, `ngrok http 3000`). If an existing ngrok agent already forwards to port 3000, keep that agent running and skip this command. Check its `Forwarding` line: the HTTPS URL should point to `http://localhost:3000` (or `http://127.0.0.1:3000`). Copy the **actual** HTTPS URL, append `/api/webhook`, and enter that full URL in the [Recall webhooks dashboard](https://docs.recall.ai/docs/desktop-recording-sdk-webhooks). For example, `https://your-assigned-domain.ngrok-free.dev` becomes `https://your-assigned-domain.ngrok-free.dev/api/webhook`. Subscribe to `sdk_upload.complete`, `sdk_upload.failed`, `sdk_upload.recording_started`, and `sdk_upload.recording_ended`.
-5. In terminal 3 run `npm run dev`. The app prepares the Tauri sidecar, then starts in development mode. On first run, preparation downloads an official Apple Silicon Node.js binary and stages the installed SDK files; later runs reuse them.
-6. Join a Google Meet call in Chrome, grant Accessibility, Microphone, and Screen Recording permissions, select the detected meeting, and click **Start recording**. Click **Stop recording** and wait for the webhook. The app will show **Open completed recording** when Recall returns a video download URL.
+1. Install the JavaScript dependencies from the repository root:
+
+   ```sh
+   npm ci
+   ```
+
+2. Create your local configuration file:
+
+   ```sh
+   cp .sample.env .env
+   ```
+
+   In Finder, files beginning with `.` are hidden. Press **Command–Shift–.** to show `.sample.env` and `.env` if you downloaded the repository as a ZIP. Set `RECALL_API_URL`, `RECALL_API_KEY`, and `RECALL_WEBHOOK_SECRET` in your local `.env`. Use the same Recall region for the API URL, key, and dashboard. Never commit `.env`.
+
+3. In terminal 1, start the backend with `npm run backend`. It starts the local API on port 8787 and the webhook receiver on port 3000. Confirm the terminal prints `Webhook receiver: http://127.0.0.1:3000/api/webhook`. Port 3000 must be free when the backend starts.
+
+4. In terminal 2, start the HTTPS tunnel with `npm run tunnel` (by default, `ngrok http 3000`). If an existing ngrok agent already forwards to port 3000, keep it running and skip this command. Check ngrok's **Forwarding** line: its public HTTPS URL must forward to `http://localhost:3000` (or `http://127.0.0.1:3000`). Copy the actual HTTPS URL ngrok prints.
+
+5. Add the webhook in the [Recall webhooks dashboard](https://docs.recall.ai/docs/desktop-recording-sdk-webhooks) for the same region as your API key. Under **Webhooks**, select **Add Endpoint** and enter the URL from step 4 with `/api/webhook` appended. For example, `https://your-assigned-domain.ngrok-free.dev` becomes `https://your-assigned-domain.ngrok-free.dev/api/webhook`. Subscribe to all four events: `sdk_upload.complete`, `sdk_upload.failed`, `sdk_upload.recording_started`, and `sdk_upload.recording_ended`. Save the endpoint.
+
+   ![Example of Recall's Add Endpoint screen](https://files.readme.io/fd86ade-Screen_Shot_2023-03-23_at_8.38.50_PM.png)
+
+   *Example dashboard screen from [Recall's webhook setup guide](https://docs.recall.ai/docs/status-change-webhooks-setup-verification); use your own ngrok URL and the Desktop SDK events listed above.*
+
+6. If Rust and Cargo are not installed, install them before starting Tauri:
+
+   ```sh
+   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+   source "$HOME/.cargo/env"
+   cargo --version
+   rustc --version
+   ```
+
+   Follow the prompts from `rustup`. If Rust is already installed, just confirm that `cargo --version` and `rustc --version` work. See [Tauri's Rust prerequisites](https://v2.tauri.app/start/prerequisites/#rust) if installation needs troubleshooting.
+
+7. In terminal 3, run `npm run dev`. The app prepares the Tauri sidecar, then starts in development mode. On first run, preparation downloads an official Apple Silicon Node.js binary and stages the installed SDK files; later runs reuse them.
+
+8. Join a Google Meet call in Chrome, grant Accessibility, Microphone, and Screen Recording permissions, select the detected meeting, and click **Start recording**. Click **Stop recording** and wait for the webhook. The app will show **Open completed recording** when Recall returns a video download URL.
 
 On an unsigned development run, macOS may attribute permissions to your terminal or IDE. Grant access in **System Settings → Privacy & Security**, then restart the app if needed. Chrome may also need a restart after a permission change. Recording other people requires their consent under your organization's policy and applicable law.
 
